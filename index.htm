@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Weather Dashboard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #2f97f2, #cceffe);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .weather-app {
+      background: linear-gradient(to right, #2f97f2,#f3f615);;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px #2eacf5;
+      padding: 2rem;
+      width: 350px;
+      text-align: center;
+    }
+
+    .weather-app h1 {
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+      color: #333;
+    }
+
+    .search-box {
+      display: flex;
+      margin-bottom: 1rem;
+    }
+
+    .search-box input {
+      flex: 1;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 8px 0 0 8px;
+      outline: none;
+    }
+
+    .search-box button {
+      padding: 0.5rem 1rem;
+      border: none;
+      background: #4facfe;
+      color: white;
+      border-radius: 0 8px 8px 0;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .search-box button:hover {
+      background: #00c6ff;
+    }
+
+    .weather-result {
+      margin-top: 1rem;
+    }
+
+    .temp {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #222;
+    }
+
+    .desc {
+      font-size: 1.2rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="weather-app">
+    <h1>Weather Dashboard</h1>
+    <div class="search-box">
+      <input type="text" id="cityInput" placeholder="Enter city...">
+      <button onclick="getWeather()">Search</button>
+    </div>
+    <div class="weather-result" id="weatherResult">
+      <p>Search for a city to see the weather 🌍</p>
+    </div>
+  </div>
+
+  <script>
+    async function getWeather() {
+      const city = document.getElementById('cityInput').value.trim();
+      if (!city) return;
+
+      const resultDiv = document.getElementById('weatherResult');
+      resultDiv.innerHTML = "<p>Loading...</p>";
+
+      try {
+        // Step 1: Geocoding API to get lat/lon
+        const geoUrl = https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1;
+        const geoRes = await fetch(geoUrl);
+        const geoData = await geoRes.json();
+
+        if (!geoData.results || geoData.results.length === 0) {
+          resultDiv.innerHTML = <p style="color:red;">City not found. Try another.</p>;
+          return;
+        }
+
+        const { latitude, longitude, name, country } = geoData.results[0];
+
+        // Step 2: Weather API
+        const weatherUrl = https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true;
+        const weatherRes = await fetch(weatherUrl);
+        const weatherData = await weatherRes.json();
+
+        const weather = weatherData.current_weather;
+
+        resultDiv.innerHTML = `
+          <div class="temp">${weather.temperature}°C</div>
+          <div class="desc">Windspeed: ${weather.windspeed} km/h</div>
+          <p><strong>${name}, ${country}</strong></p>
+          <p>Updated: ${weather.time}</p>
+        `;
+      } catch (error) {
+        console.error(error);
+        resultDiv.innerHTML = <p style="color:red;">Error fetching weather data. Try again.</p>;
+      }
+    }
+  </script>
+</body>
+</html>
